@@ -1,0 +1,9 @@
+-- CreateTable
+CREATE TABLE "Enquete" (
+    "id" TEXT NOT NULL,
+    "titulo" TEXT NOT NULL,
+    "criadoEm" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "atualizadoEm" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Enquete_pkey" PRIMARY KEY ("id")
+);
