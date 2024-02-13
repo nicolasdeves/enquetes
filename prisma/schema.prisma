@@ -12,4 +12,14 @@ model Enquete {
   titulo       String
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @default(now())
+
+  opcao Opcao[]
+}
+
+model Opcao {
+  id        String @id @default(uuid())
+  descricao String
+  enqueteId String
+
+  enquete Enquete @relation(fields: [enqueteId], references: [id])
 }

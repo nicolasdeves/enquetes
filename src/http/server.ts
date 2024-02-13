@@ -1,33 +1,20 @@
-import fastify from 'fastify';
-import { PrismaClient } from '@prisma/client';     
-import { z } from 'zod';
-
+import fastify from 'fastify';    
+import { criaEnquete } from '../routes/cria-enquete';
+import { getEnquete } from '../routes/get-enquete';
+import { votaEnquete } from '../routes/votar-enquete';
+import cookie from '@fastify/cookie';
 
 const app = fastify();
 
-const prisma = new PrismaClient();
+app.register(cookie, {
+    secret: 'my-secret',
+    hook: 'onRequest'
+});
 
-app.post('/enquete', async (request, reply) => {
-    const createEnqueteSchema = z.object({
-        titulo: z.string()
-    })
-
-
-    const { titulo } = createEnqueteSchema.parse(request.body);
-
-    const enquete = await prisma.enquete.create({
-        data: {
-            titulo,
-        }
-    })
-
-    return reply.code(201).send(enquete);
-})
-
-app.get('/hello', () => {
-    return 'Hello, World!';
-})
+app.register(criaEnquete),
+app.register(getEnquete)
+app.register(votaEnquete)
 
 app.listen({ port:3333 }).then(() => {
-    console.log('Server is running on port 3333');
+    console.log('Server is running on port 3333');      
 });
