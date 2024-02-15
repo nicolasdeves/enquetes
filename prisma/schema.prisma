@@ -14,6 +14,7 @@ model Enquete {
   atualizadoEm DateTime @default(now())
 
   opcao Opcao[]
+  voto  Voto[]
 }
 
 model Opcao {
@@ -22,4 +23,18 @@ model Opcao {
   enqueteId String
 
   enquete Enquete @relation(fields: [enqueteId], references: [id])
+  voto    Voto[]
+}
+
+model Voto {
+  id        Int      @id @default(autoincrement())
+  sessaoId  String
+  criadoEm  DateTime @default(now())
+  opcaoId   String
+  enqueteId String
+
+  opcao   Opcao   @relation(fields: [opcaoId], references: [id])
+  enquete Enquete @relation(fields: [enqueteId], references: [id])
+
+  @@unique([sessaoId, enqueteId])
 }
