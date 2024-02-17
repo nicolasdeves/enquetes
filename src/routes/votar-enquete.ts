@@ -3,6 +3,7 @@ import z from "zod";
 import { prisma } from "../lib/prisma";
 import { randomUUID } from "node:crypto";
 import { FastifyReply } from "fastify";
+import { redis } from "../lib/redis";
 
 export async function votaEnquete(app: FastifyInstance) {
     app.post('/enquete/:enqueteId/voto', async (request, reply) => {
@@ -36,7 +37,9 @@ export async function votaEnquete(app: FastifyInstance) {
                         id: votoAnteriorUsuario.id
                     }
                 })
-            } else if (votoAnteriorUsuario) {
+
+                await redis.zincrby(enqueteId, -1, votoAnteriorUsuario.id);
+            }   else if (votoAnteriorUsuario) {
                 return reply.code(400).send({erro: 'Usuário já votou nesta enquete'})
             }
         }
@@ -58,6 +61,8 @@ export async function votaEnquete(app: FastifyInstance) {
                 enqueteId
             }
         })
+
+        await redis.zincrby(enqueteId, 1, opcaoId);
 
         return reply.code(201).send({sessaoId});
     })
