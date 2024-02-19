@@ -4,6 +4,7 @@ import { prisma } from "../lib/prisma";
 import { randomUUID } from "node:crypto";
 import { FastifyReply } from "fastify";
 import { redis } from "../lib/redis";
+import { votando } from "../utils/votos-pub-sub";
 
 export async function votaEnquete(app: FastifyInstance) {
     app.post('/enquete/:enqueteId/voto', async (request, reply) => {
@@ -36,9 +37,19 @@ export async function votaEnquete(app: FastifyInstance) {
                     where: {
                         id: votoAnteriorUsuario.id
                     }
+
+                    
                 })
 
-                await redis.zincrby(enqueteId, -1, votoAnteriorUsuario.id);
+                const votosOpcao = await redis.zincrby(enqueteId, -1, votoAnteriorUsuario.id);
+
+                votando.publish(enqueteId, {
+                    opcaoId: String(votoAnteriorUsuario.id),
+                    votos: Number(votosOpcao),
+                })
+
+
+
             }   else if (votoAnteriorUsuario) {
                 return reply.code(400).send({erro: 'Usuário já votou nesta enquete'})
             }
@@ -62,7 +73,12 @@ export async function votaEnquete(app: FastifyInstance) {
             }
         })
 
-        await redis.zincrby(enqueteId, 1, opcaoId);
+        const votosOpcao = await redis.zincrby(enqueteId, 1, opcaoId);
+
+        votando.publish(enqueteId, {
+            opcaoId,
+            votos: Number(votosOpcao),
+        })
 
         return reply.code(201).send({sessaoId});
     })
